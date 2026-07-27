@@ -1,0 +1,29 @@
+import Counter from "@/components/blog/widgets/Counter";
+import Sketchpad from "@/components/blog/widgets/Sketchpad";
+
+export const metadata = {
+  title: "A sample tech writeup with a live widget",
+  date: "2026-07-05",
+  summary: "Shows how to embed a real interactive React component inside a post.",
+  tags: ["example", "react"],
+};
+
+Placeholder writeup — swap the prose for a real technical deep dive. The
+interesting part is that MDX lets you drop actual React components straight
+into the article body, not just static markdown.
+
+## A live counter 🔢
+
+Here's one, live and interactive right now:
+
+<Counter label="Times you've clicked" />
+
+Any client component works this way — a chart, a code playground, a small
+simulation — just `import` it at the top of the `.mdx` file and use it like
+a JSX tag anywhere in the writeup.
+
+## A bonus doodle pad 🎨
+
+Here's a bonus one — a real embedded Excalidraw canvas, draw something:
+
+<Sketchpad />

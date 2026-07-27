@@ -1,0 +1,42 @@
+{
+  "cards": {
+    "about": {
+      "title": "Who's Zhi Yang?",
+      "body": [
+        "Software Engineer at Synthesis Partners, based in Singapore. Currently slightly Claude-pilled.",
+        "Interested in building things and learning about new systems and tools. Working on projects that allows me to dig deep into the weeds on tools we use and thinking about system design makes me :D"
+      ]
+    },
+    "projects": {
+      "title": "Projects",
+      "body": [
+        "• BabyKafka — a distributed-systems learning project recreating Apache Kafka internals\n",
+        "• Framemarks — a tool for capturing notes, screenshots, and timestamps from video content"
+      ],
+      "links": [
+        {
+          "label": "Framemarks",
+          "url": "https://framemarks.com/welcome"
+        }
+      ]
+    },
+    "contact": {
+      "title": "Contact",
+      "body": [],
+      "links": [
+        {
+          "label": "LinkedIn",
+          "url": "https://www.linkedin.com/in/zhi-yang-tan-265815166/"
+        },
+        {
+          "label": "GitHub",
+          "url": "https://github.com/tanzyy96"
+        },
+        {
+          "label": "Medium",
+          "url": "https://medium.com/@tanzyy"
+        }
+      ]
+    }
+  }
+}

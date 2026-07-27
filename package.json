@@ -6,12 +6,22 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "benchmarks": "node --env-file-if-exists=.env scripts/run-benchmarks.mjs"
   },
   "dependencies": {
+    "@excalidraw/excalidraw": "^0.18.1",
+    "@mdx-js/loader": "^3.1.1",
+    "@mdx-js/react": "^3.1.1",
+    "@next/mdx": "^16.2.10",
+    "@types/mdx": "^2.0.14",
+    "@xyflow/react": "^12.11.2",
     "next": "16.2.10",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
+    "roughjs": "^4.6.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

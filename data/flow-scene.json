@@ -1,0 +1,114 @@
+{
+  "nodes": [
+    {
+      "id": "header-name",
+      "type": "text",
+      "position": {
+        "x": 100,
+        "y": -140
+      },
+      "data": {
+        "text": "Hi, I'm Zhi Yang 👋",
+        "size": "lg"
+      }
+    },
+    {
+      "id": "header-tagline",
+      "type": "text",
+      "position": {
+        "x": 100,
+        "y": -80
+      },
+      "data": {
+        "text": "Software Engineer @ Synthesis Partners — drag the cards around",
+        "size": "md"
+      }
+    },
+    {
+      "id": "card-blog",
+      "type": "card",
+      "position": {
+        "x": 749.8381877022654,
+        "y": 104.91909385113269
+      },
+      "width": 220,
+      "height": 140,
+      "data": {
+        "label": "Tech Blog (2)",
+        "link": "/blog",
+        "backgroundColor": "#b2f2bb",
+        "isOpen": false
+      }
+    },
+    {
+      "id": "card-benchmarks",
+      "type": "card",
+      "position": {
+        "x": 749.8381877022654,
+        "y": 340
+      },
+      "width": 220,
+      "height": 140,
+      "data": {
+        "label": "Stupid LLM Benchmarks",
+        "link": "#benchmarks",
+        "backgroundColor": "#ffc9c9",
+        "isOpen": false,
+        "fillStyle": "zigzag",
+        "roughness": 2
+      }
+    },
+    {
+      "id": "card-about",
+      "type": "card",
+      "position": {
+        "x": 272.65372168284784,
+        "y": 339.2071197411003
+      },
+      "width": 220,
+      "height": 140,
+      "data": {
+        "label": "About Me",
+        "link": "#about",
+        "backgroundColor": "#eebefa",
+        "isOpen": false,
+        "fillStyle": "cross-hatch",
+        "roughness": 3
+      }
+    },
+    {
+      "id": "card-projects",
+      "type": "card",
+      "position": {
+        "x": -136.73139158576052,
+        "y": 140.4045307443365
+      },
+      "width": 220,
+      "height": 140,
+      "data": {
+        "label": "Projects",
+        "link": "#projects",
+        "backgroundColor": "#a5d8ff",
+        "isOpen": false,
+        "fillStyle": "hachure",
+        "roughness": 1.5
+      }
+    },
+    {
+      "id": "card-contact",
+      "type": "card",
+      "position": {
+        "x": -37.0550161812298,
+        "y": 628.6569579288026
+      },
+      "width": 220,
+      "height": 140,
+      "data": {
+        "label": "Contact",
+        "link": "#contact",
+        "backgroundColor": "#eebefa",
+        "isOpen": false
+      }
+    }
+  ]
+}

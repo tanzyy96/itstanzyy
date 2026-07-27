@@ -1,0 +1,257 @@
+export const metadata = {
+  title: "Thinking About Marking Papers At Scale: How Kafka Actually Works",
+  date: "2026-07-14",
+  summary:
+    "An exam-marking metaphor for how Kafka scales — topics, partitions, brokers, and replication — worked out while building a toy Kafka clone from scratch.",
+  tags: ["kafka", "distributed-systems", "go"],
+};
+
+As a part of my journey to hone my skills as a Software Engineer, I decided to
+go down the path of rebuilding an existing, well-documented project. The
+objective of this side-project was really about uncovering the internals of a
+piece of software in the distributed systems space, whilst practicing some
+good ol' coding skills.
+
+The product I decided on was going to be Apache Kafka. Well, at least a baby
+version of it — and called it
+[`baby-kafka`](https://github.com/tanzyy96/baby-kafka).
+
+Yes, I didn't need to rewrite Kafka to understand why we need Kafka in an
+event-driven, high-throughput system. However, the process of building
+`baby-kafka` gave me a much better appreciation for how Kafka was designed to
+perform at such a scale.
+
+## Understanding the beauty of Kafka's scalability and fault tolerance 📚
+
+My favourite metaphor for the design of Kafka has been thinking of the marking
+process of major examinations like the GCSE 'A' Levels.
+
+Imagine we're trying to design a system of teachers trying to mark as many
+students' papers as fast as possible.
+
+### Level 1: Single teacher marking many papers
+
+![The lone teacher ain't gonna have a good time](/blog/kafka-at-scale/level1.webp)
+
+_The lone teacher ain't gonna have a good time_
+
+This would work for a small, private tutor. Just having a singular teacher
+marking all the papers would work, but for our situation it would take
+forever.
+
+```go
+// Pseudocode for Simplicity
+producer.Send(core.Message{Key: []byte("key"), Value: []byte("value")})
+
+// ...
+
+consumer := NewConsumer()
+go consumer.Listen()
+```
+
+### Level 2: Multiple teachers, one teacher per subject
+
+This might be something we commonly see at a tuition center. The horizontal
+scaling of teachers would mean we need to find a suitable way to split the
+papers up. With each subject being handled by a corresponding teacher, we
+would also have an easier time handing them off after marking has finished.
+
+![Marking Math somehow sounds easier than the others](/blog/kafka-at-scale/level2.webp)
+
+_Marking Math somehow sounds easier than the others_
+
+This is a concept in Kafka known as `topics`, where messages of different
+topics are handled separately from each other. This helps with separation of
+concern — consumers (aka message receivers) can listen to specific topics
+only.
+
+```go
+// Pseudocode for Simplicity
+producer.Send(
+  "Science",
+  core.Message{Key: []byte("key"), Value: []byte("value")},
+)
+
+// ...
+
+consumer := NewConsumer("Science")
+go consumer.Listen()
+```
+
+### Level 3: Multiple teachers per subject
+
+Bringing the horizontal scaling to the next level, we now have multiple
+teachers per subject. This would help with the throughput of each subject. If
+certain subjects are expecting higher throughput (i.e. more Maths than Sci
+students), we can also increase the number of teachers marking that subject.
+The previous version did not account for uneven throughputs.
+
+![If fewer students are taking Science, we might have fewer partitions aka teachers allocated](/blog/kafka-at-scale/level3.webp)
+
+_If fewer students are taking Science, we might have fewer partitions aka
+teachers allocated_
+
+This is a concept in Kafka known as `partitioning`, where each topic can be
+handled by multiple partitions for parallelism. Incoming messages for a given
+topic are routed to different partitions based on a hash of their key, namely
+`hash(key) % numPartitions`. This allows messages of the same key to route
+through the same partition for guaranteed in-partition ordering, whilst
+distributing (to the best of its ability) load across multiple partitions. In
+the example of our exam marking, a useful key might be `school_id`, which
+helps with a much more even distribution of load across partitions.
+
+```go
+// Pseudocode for Simplicity
+metadata := producer.FetchTopicMetadata("Science")
+producer.Send(
+  "Science",
+  getPartitionID("key", metadata.NumPartitions), // returns school_id
+  core.Message{Key: []byte("key"), Value: []byte("value")},
+)
+
+// ...
+
+metadata := groupCoordinator.FetchTopicMetadata("Science")
+for partitionIndex := range metadata.NumPartitions {
+  consumer := NewConsumer("Science", partitionIndex)
+  go consumer.Listen()
+}
+```
+
+One major change here is the need for the message consumers and producers to
+be aware of how many partitions are available in the system.
+
+### Level 4: Multiple marking centers, with multiple teachers per subject
+
+Just like in real life, vertical scaling isn't infinite. You can't simply get
+a huge warehouse and cram it with as many teachers as possible — there's a
+limit on the vertical scaling of the size of the marking center. We don't want
+a hundred teachers sharing 2 toilets now, do we? 😆
+
+![Ideally, topic partitions are evenly distributed](/blog/kafka-at-scale/level4.webp)
+
+_Ideally, topic partitions are evenly distributed_
+
+Having multiple marking centers ensures we have the ability to both
+horizontally and vertically scale comfortably. In Kafka, this comes in the
+form of multiple brokers (aka multiple nodes sharing total throughput).
+Partitions are now distributed across different brokers to (optimistically)
+even out the traffic to each broker and prevent a single broker from becoming
+a traffic bottleneck.
+
+```go
+// Pseudocode for Simplicity
+brokerConfigs := producer.FetchBrokerConfigs()
+metadata := producer.FetchTopicMetadata("Science")
+producer.Send(
+  brokerConfigs,
+  "Science",
+  getPartitionID("key", metadata.NumPartitions),
+  core.Message{Key: []byte("key"), Value: []byte("value")},
+)
+
+// ...
+
+brokerConfigs := groupCoordinator.FetchBrokerConfigs()
+metadata := groupCoordinator.FetchTopicMetadata("Science")
+for partitionIndex := range metadata.NumPartitions {
+  consumer := NewConsumer("Science", partitionIndex, brokerConfigs)
+  go consumer.Listen()
+}
+```
+
+The major complexity here is actually maintaining a shared knowledge of which
+brokers are available. For `baby-kafka`, we simplify it by using a
+hard-coded, config-based data structure that both consumers and producers can
+refer to. In actual Kafka, it relies on Apache Zookeeper / KRaft, which act as
+a coordination layer to maintain a shared understanding of crucial
+information like:
+
+- Topic metadata → partition leadership, topic configs, etc.
+- Broker liveness detection
+- Controller election → which broker is the leader and decides things
+
+For the sake of keeping the project manageable, we're keeping this part basic
+— but it's also important to understand the role that these consensus
+protocols play in the fully-fledged system.
+
+### Level 5: Multiple marking centers, multiple teachers per subject, with backup teachers co-marking
+
+The final stage of scalability takes a turn, where we focus on ensuring
+resiliency of the system. In the (extremely odd sounding, but entertain me)
+situation where there's a disease outbreak, we don't want the marking of an
+entire subject to cease. This would come in two parts:
+
+- Mixing up subject teachers across marking centers
+- Each subject teacher having one or more backup teachers in another marking
+  center
+
+This ensures that in a scenario of an entire marking center becoming
+unavailable, no single subject will cease completely. Backup teachers should
+be tracking marking progress closely and be able to hop in at any time.
+
+![Partition replication](/blog/kafka-at-scale/level5.webp)
+
+In Kafka, this looks like `partition replication`. Leader partitions are
+where writes primarily go through, just like how we had it before. Partitions
+are then replicated across brokers to ensure that if a broker were to break
+down, the system should elect a replica partition as the leader partition
+instead.
+
+```go
+// Pseudocode for Simplicity
+brokerConfigs := producer.FetchBrokerConfigs()
+metadata := producer.FetchTopicMetadata("Science")
+producer.Send(
+  brokerConfigs,
+  "Science",
+  getPartitionID("key", metadata.NumPartitions),
+  core.Message{Key: []byte("key"), Value: []byte("value")},
+)
+
+// ...
+
+for _, b := range brokers {
+    rp := b.ReplicaPartitions()
+    // spin up goroutines to concurrently poll for message updates
+    go NewReplicaFetcher(rp).PollForReplication()
+}
+
+// ...
+
+brokerConfigs := groupCoordinator.FetchBrokerConfigs()
+metadata := groupCoordinator.FetchTopicMetadata("Science")
+for partitionIndex := range metadata.NumPartitions {
+  consumer := NewConsumer("Science", partitionIndex, brokerConfigs)
+  go consumer.Listen()
+}
+```
+
+## Further complexities in distributed systems 🧩
+
+Now, this doesn't even come close to covering everything. The basics covered
+above are just the introduction to how Kafka thinks about resilience and
+scalability in distributed systems. If you wish to have a more holistic
+understanding of Kafka, I definitely recommend watching HelloInterview's Deep
+Dive into Apache Kafka.
+
+There are further complexities that I've yet to learn about, such as leader
+reelection during broker failures — how Kafka handles situations such as
+brokers reviving to find out they no longer are leaders. These are concepts
+that remain out-of-scope of my project for now. However, simply uncovering
+the intricacies of such a system has definitely been an eye-opener.
+
+## Don't shortchange the small stuff 🔧
+
+In the article above, I've only talked about the distributed nature of Kafka.
+There are definitely interesting lessons I've taken away from building the
+lower-level internals of Kafka — append-only logs, tracking consumer offsets,
+implementing a custom TCP protocol, consumer groups. The distributed layer
+gets all the glory, but building the low-level stuff from scratch gave me a
+fair share of _aha_ moments. If you're curious about these topics, I may
+cover those in a follow-up.
+
+In the meantime, if you want to truly internalize how a piece of software
+works, there's no substitute for picking it apart yourself. If you're
+interested in following along on the progress of `baby-kafka`, you can find
+the repo [here](https://github.com/tanzyy96/baby-kafka).
