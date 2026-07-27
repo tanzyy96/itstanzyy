@@ -28,10 +28,13 @@ export default function CopyButton({
     <button
       type="button"
       onClick={handleClick}
-      className={`w-full rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+      // Both variants are quiet. The solid one used to be a near-black block,
+      // which made a utility action the highest-contrast thing on a reading
+      // page — it out-shouted the article it sits next to.
+      className={`w-full rounded-md px-3 py-1.5 text-[13px] transition-colors ${
         variant === "solid"
-          ? "bg-[var(--fm-ink)] text-[var(--fm-paper)] hover:opacity-90"
-          : "border border-[var(--fm-hairline)] text-[var(--fm-ink)] hover:bg-[var(--fm-surface)]"
+          ? "border border-[var(--fm-hairline)] bg-[var(--fm-surface)] font-medium text-[var(--fm-ink)] hover:border-[var(--fm-faint)]"
+          : "border border-transparent text-[var(--fm-muted)] hover:border-[var(--fm-hairline)] hover:text-[var(--fm-ink)]"
       }`}
     >
       {status === "copied" ? "Copied!" : status === "error" ? "Couldn't copy" : label}

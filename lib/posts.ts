@@ -68,10 +68,18 @@ export async function getPostMetadata(slug: string): Promise<PostMetadata> {
   return mod.metadata;
 }
 
-export async function getAllPosts(): Promise<(PostMetadata & { slug: string })[]> {
+// Reading time comes along for the ride so the index can show it without
+// each caller re-reading every post off disk.
+export async function getAllPosts(): Promise<
+  (PostMetadata & { slug: string; readingMinutes: number })[]
+> {
   const slugs = getPostSlugs();
   const posts = await Promise.all(
-    slugs.map(async (slug) => ({ slug, ...(await getPostMetadata(slug)) })),
+    slugs.map(async (slug) => ({
+      slug,
+      readingMinutes: estimateReadingMinutes(getPostBody(slug)),
+      ...(await getPostMetadata(slug)),
+    })),
   );
   return posts.sort((a, b) => (a.date < b.date ? 1 : -1));
 }

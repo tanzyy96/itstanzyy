@@ -19,7 +19,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     h2: ({ children, ...rest }) => (
       <h2
         id={slugify(getNodeText(children))}
-        className="font-serif mb-3 mt-10 scroll-mt-24 text-2xl font-semibold text-[var(--fm-ink)]"
+        className="font-serif mb-3 mt-12 scroll-mt-24 text-[28px] font-semibold leading-tight text-[var(--fm-ink)]"
         {...rest}
       >
         {children}
@@ -34,15 +34,33 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </h3>
     ),
-    p: (props) => <p className="mb-4 leading-7 text-[var(--fm-ink)]" {...props} />,
+    // 17px rather than 16: at the article's fixed width that pulls the line
+    // length from ~80 characters down to ~72, which is inside the comfortable
+    // range for long-form, without narrowing the column and shrinking the
+    // diagrams. Paragraph spacing scales with the looser leading so the
+    // rhythm still reads as separate paragraphs.
+    p: (props) => (
+      <p className="mb-5 text-[17px] leading-[1.75] text-[var(--fm-ink)]" {...props} />
+    ),
     a: (props) => (
       <a
         className="text-[var(--fm-accent)] underline decoration-2 underline-offset-2 hover:opacity-80"
         {...props}
       />
     ),
-    ul: (props) => <ul className="mb-4 list-disc pl-6" {...props} />,
-    ol: (props) => <ol className="mb-4 list-decimal pl-6" {...props} />,
+    ul: (props) => (
+      <ul className="mb-5 list-disc space-y-2 pl-6 text-[17px] leading-[1.75]" {...props} />
+    ),
+    ol: (props) => (
+      <ol className="mb-5 list-decimal space-y-2 pl-6 text-[17px] leading-[1.75]" {...props} />
+    ),
+    blockquote: (props) => (
+      <blockquote
+        className="mb-5 border-l-2 border-[var(--fm-accent)] pl-4 text-[17px] italic leading-[1.75] text-[var(--fm-muted)]"
+        {...props}
+      />
+    ),
+    hr: () => <hr className="my-10 border-[var(--fm-hairline)]" />,
     // eslint-disable-next-line @next/next/no-img-element
     img: (props) => (
       <img
@@ -51,9 +69,12 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {...props}
       />
     ),
+    // Was `bg-[var(--fm-paper)]`, which is the exact page background — the
+    // chip was invisible. `0.92em` keeps mono from looking shrunken next to
+    // 17px body text (mono x-heights run large, so 1:1 looks oversized).
     code: (props) => (
       <code
-        className="rounded bg-[var(--fm-paper)] px-1.5 py-0.5 font-mono text-sm text-[var(--fm-ink)]"
+        className="rounded border border-[var(--fm-hairline)] bg-[var(--fm-surface)] px-1.5 py-0.5 font-mono text-[0.92em] text-[var(--fm-ink)]"
         {...props}
       />
     ),
