@@ -2,6 +2,21 @@
 
 canvas blog
 
+## The home page
+
+`/` is a pannable paper desk (`components/desk/`), fronted by a blind
+"Stupid LLM Benchmark" gate: five rounds, four anonymised answers each, pick
+the funniest, and the result names the model whose humour matches yours.
+
+- Gate rounds, the four models and their persona blurbs live in `lib/desk.ts`.
+  Answers are pulled verbatim from `data/benchmarks.json`.
+- Card bodies read the same content as before (`data/site-content.json`, the
+  blog posts, the benchmarks). The blurbs, tags and back-of-card lines are in
+  `buildDeskCards()` in `lib/desk.ts`.
+- On screens 720px wide or less the canvas becomes a vertical card list.
+- Visitors' card positions/stamps (`zy-canvas-expand-v1`) and their last quiz
+  result (`zy-bench-quiz-v1`) persist in localStorage.
+
 ## Getting Started
 
 First, run the development server:

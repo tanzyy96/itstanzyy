@@ -1,7 +1,19 @@
-import FlowCanvas from "@/components/flow/FlowCanvas";
-import { getPostSlugs } from "@/lib/posts";
+import Desk from "@/components/desk/Desk";
+import { getBenchmarks } from "@/lib/benchmarks";
+import { getAllPosts } from "@/lib/posts";
 
-export default function Home() {
-  const postCount = getPostSlugs().length;
-  return <FlowCanvas postCount={postCount} />;
+export default async function Home() {
+  const posts = await getAllPosts();
+  return (
+    <Desk
+      posts={posts.map(({ slug, title, date, summary, readingMinutes }) => ({
+        slug,
+        title,
+        date,
+        summary,
+        readingMinutes,
+      }))}
+      benchmarkCount={getBenchmarks().length}
+    />
+  );
 }
